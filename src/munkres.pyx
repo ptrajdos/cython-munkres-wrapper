@@ -9,6 +9,11 @@ cimport cython # to disable bounds checks
 # _always_ do that, or you will have segfaults
 np.import_array()
 
+try:
+    np_bool = np.bool
+except AttributeError:
+    np_bool = np.bool_
+
 from libcpp cimport bool
 
 cdef extern from "cpp/Munkres.h":
@@ -29,7 +34,7 @@ def munkres(np.ndarray[np.double_t,ndim=2, mode="c"] A not None):
     cdef Munkres* munk = new Munkres()
     munk.solve(<double *> A.data, <int *> rslt.data, x, y)
     del munk
-    return rslt.astype(np.bool_)
+    return rslt.astype(np_bool)
 
 @cython.boundscheck(False)
 def max_cost_munkres(np.ndarray[np.double_t,ndim=2] A not None, double max_cost):
@@ -61,7 +66,7 @@ def iterative_munkres(np.ndarray[np.double_t,ndim=2] icost, max_cost):
         dim = np.delete(dim, remove, 0)
         if cost.shape[1] == 0 or not np.any(r):
             done = True
-    return assigned.astype(np.bool_)
+    return assigned.astype(np_bool)
 
 @cython.boundscheck(False)
 def _get_cost(np.ndarray[np.int_t, ndim=1] x, np.ndarray[np.int_t, ndim=1] y, np.ndarray[np.double_t, ndim=2] C):
